@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
+import matplotlib.animation as animation
 import time
 import datetime
 import subprocess
@@ -8,11 +9,22 @@ import scipy.ndimage
 
 # change "wlo1" with your wifi interface.
 wifiInt = "wlo1"
-log = {}
+times = []
+values = []
 
-try:
+fig = plt.figure() 
+line_raw= fig.add_subplot(1,1,1,label="Smoothed")
 
-    while True:
+# plt.plot(times, smoothed, label="Smoothed", linewidth=2)
+line_raw.set_title("RSS over Time")
+line_raw.set_xlabel("Time")
+line_raw.set_ylabel("Signal Level (dBm)")
+plt.xticks(rotation=45)
+plt.gca().yaxis.set_major_locator(mticker.MultipleLocator(1))
+
+
+def update(frame):
+    try:
         rawData = subprocess.check_output(["iwconfig", wifiInt], text=True)
         lines = rawData.split('\n')
         for line in lines:
@@ -20,23 +32,26 @@ try:
                 parts = line.strip().split("Signal level=")
                 if len(parts) > 1:
                     signalLevel = parts[1].split(' ')[0]
-                    time = datetime.datetime.now()
-                    log[time] = int(signalLevel)
-
-except KeyboardInterrupt:
-    print("Logging stopped. Plotting...")
-    times, values = zip(*sorted(log.items()))
-    smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=5)
-    plt.plot(times, values, label="Raw")
-    plt.plot(times, smoothed, label="Smoothed", linewidth=2)
-    plt.title("RSS over Time")
-    plt.xlabel("Time")
-    plt.ylabel("Signal Level (dBm)")
-    plt.xticks(rotation=45)
-    plt.gca().yaxis.set_major_locator(mticker.MultipleLocator(1))
-    plt.tight_layout()
-    plt.show()
-
+                    now = datetime.datetime.now()
+                    values.append(int(signalLevel))
+                    times.append(now)
     
-except subprocess.CalledProcessError as e:
-    print(f"Command failed with retun code {e.returncode}")
+                    # smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=5)
+                        
+                    #Update plot
+                    line_raw.plot(times, values)
+
+
+    except KeyboardInterrupt:
+        print("Logging stopped")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed with retun code {e.returncode}")
+
+
+
+#animation
+
+ani = animation.FuncAnimation(fig, update, interval = 1000, cache_frame_data=False)
+plt.tight_layout()
+plt.show()

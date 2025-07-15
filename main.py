@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import time
 import datetime
 import subprocess
@@ -20,11 +21,17 @@ try:
                 if len(parts) > 1:
                     signalLevel = parts[1].split(' ')[0]
                     time = datetime.datetime.now()
-                    log[f"{time}"] = signalLevel
+                    log[time] = int(signalLevel)*-1
 
 except KeyboardInterrupt:
     print("Logging stopped. Plotting...")
     plt.plot(*zip(*sorted(log.items())))
+    plt.title("RSS over Time")
+    plt.xlabel("Time")
+    plt.ylabel("Signal Level (dBm)")
+    plt.xticks(rotation=45)
+    plt.gca().yaxis.set_major_locator(mticker.MultipleLocator(1))
+    plt.tight_layout()
     plt.show()
 
     

@@ -4,7 +4,7 @@ import matplotlib.ticker as mticker
 import time
 import datetime
 import subprocess
-
+import scipy.ndimage
 
 # change "wlo1" with your wifi interface.
 wifiInt = "wlo1"
@@ -25,7 +25,10 @@ try:
 
 except KeyboardInterrupt:
     print("Logging stopped. Plotting...")
-    plt.plot(*zip(*sorted(log.items())))
+    times, values = zip(*sorted(log.items()))
+    smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=5)
+    plt.plot(times, values, label="Raw")
+    plt.plot(times, smoothed, label="Smoothed", linewidth=2)
     plt.title("RSS over Time")
     plt.xlabel("Time")
     plt.ylabel("Signal Level (dBm)")

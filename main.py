@@ -21,7 +21,7 @@ try:
                 if len(parts) > 1:
                     signalLevel = parts[1].split(' ')[0]
                     time = datetime.datetime.now()
-                    log[time] = int(signalLevel)*-1
+                    log[time] = int(signalLevel)*
 
 except KeyboardInterrupt:
     print("Logging stopped. Plotting...")

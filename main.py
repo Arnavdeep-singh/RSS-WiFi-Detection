@@ -11,14 +11,23 @@ import scipy.ndimage
 wifiInt = "wlo1"
 times = []
 values = []
+smoothed_values =[]
 
 fig = plt.figure() 
-line_raw= fig.add_subplot(1,1,1,label="Smoothed")
+line_raw= fig.add_subplot(1,1,1,label="raw")
 
-# plt.plot(times, smoothed, label="Smoothed", linewidth=2)
+# fig2 = plt.figure()
+line_smooth = fig.add_subplot(1,1,1, label="smoothed")
+
+
 line_raw.set_title("RSS over Time")
 line_raw.set_xlabel("Time")
 line_raw.set_ylabel("Signal Level (dBm)")
+
+line_smooth.set_title("RSS over Time")
+line_smooth.set_xlabel("Time")
+line_smooth.set_ylabel("Signal Level (dBm)")
+
 plt.xticks(rotation=45)
 plt.gca().yaxis.set_major_locator(mticker.MultipleLocator(1))
 
@@ -31,13 +40,15 @@ def update(frame):
             if "Signal level=" in line:
                 parts = line.strip().split("Signal level=")
                 if len(parts) > 1:
+                    # get Signal level and time
                     signalLevel = parts[1].split(' ')[0]
                     now = datetime.datetime.now()
+                    # add values to log
                     values.append(int(signalLevel))
                     times.append(now)
-    
-                    # smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=5)
-                        
+                    # smooth the values and add to log
+                    smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=5)
+                    smoothed_values.append(smoothed)
                     #Update plot
                     line_raw.plot(times, values)
 
@@ -48,10 +59,16 @@ def update(frame):
     except subprocess.CalledProcessError as e:
         print(f"Command failed with retun code {e.returncode}")
 
-
+line_smooth.plot(times, smoothed_values)
 
 #animation
 
-ani = animation.FuncAnimation(fig, update, interval = 1000, cache_frame_data=False)
+ani = animation.FuncAnimation(fig, update, interval = 250, cache_frame_data=False)
 plt.tight_layout()
+line_smooth.set_visible(False)
 plt.show()
+
+line_smooth.set_visible(True)
+line_raw.set_visible(False)
+plt.show()
+plt.savefig("/home/arnavdeeps/Desktop/testing.png")

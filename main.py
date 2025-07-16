@@ -16,20 +16,14 @@ smoothed_values =[]
 fig = plt.figure() 
 line_raw= fig.add_subplot(1,1,1,label="raw")
 
-# fig2 = plt.figure()
-line_smooth = fig.add_subplot(1,1,1, label="smoothed")
-
-
+fig.set_size_inches(10,4)
 line_raw.set_title("RSS over Time")
 line_raw.set_xlabel("Time")
 line_raw.set_ylabel("Signal Level (dBm)")
-
-line_smooth.set_title("RSS over Time")
-line_smooth.set_xlabel("Time")
-line_smooth.set_ylabel("Signal Level (dBm)")
-
-plt.xticks(rotation=45)
-plt.gca().yaxis.set_major_locator(mticker.MultipleLocator(1))
+# plt.xticks(rotation=45)
+# plt.gca().yaxis.set_major_locator(mticker.MultipleLocator(1))
+# plt.gca().xaxis.set_major_locator(mticker.AutoLocator())
+plt.tight_layout()
 
 
 def update(frame):
@@ -46,9 +40,6 @@ def update(frame):
                     # add values to log
                     values.append(int(signalLevel))
                     times.append(now)
-                    # smooth the values and add to log
-                    smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=5)
-                    smoothed_values.append(smoothed)
                     #Update plot
                     line_raw.plot(times, values)
 
@@ -59,16 +50,25 @@ def update(frame):
     except subprocess.CalledProcessError as e:
         print(f"Command failed with retun code {e.returncode}")
 
-line_smooth.plot(times, smoothed_values)
 
 #animation
-
-ani = animation.FuncAnimation(fig, update, interval = 250, cache_frame_data=False)
-plt.tight_layout()
-line_smooth.set_visible(False)
+anim = animation.FuncAnimation(fig, update, interval = 100, cache_frame_data=False)
 plt.show()
 
-line_smooth.set_visible(True)
-line_raw.set_visible(False)
-plt.show()
-plt.savefig("/home/arnavdeeps/Desktop/testing.png")
+
+if times and values:
+    smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=2)
+
+    plt.figure()
+    plt.plot(times, values, label = "raw", alpha=0.4)
+    plt.plot(times, smoothed, label="smoothed",linewidth=2)
+
+    plt.title("RSS over Time (smoothed)")
+    plt.xlabel("Time")
+    plt.ylabel("Signal Level (dBm)")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+

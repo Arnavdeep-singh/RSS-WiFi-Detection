@@ -9,20 +9,19 @@ import scipy.ndimage
 
 # change "wlo1" with your wifi interface.
 wifiInt = "wlo1"
+
+# init arrays
 times = []
 values = []
 smoothed_values =[]
 
+# Graph config
 fig = plt.figure() 
 line_raw= fig.add_subplot(1,1,1,label="raw")
-
 fig.set_size_inches(10,4)
 line_raw.set_title("RSS over Time")
 line_raw.set_xlabel("Time")
 line_raw.set_ylabel("Signal Level (dBm)")
-# plt.xticks(rotation=45)
-# plt.gca().yaxis.set_major_locator(mticker.MultipleLocator(1))
-# plt.gca().xaxis.set_major_locator(mticker.AutoLocator())
 plt.tight_layout()
 
 
@@ -43,25 +42,16 @@ def update(frame):
                     #Update plot
                     line_raw.plot(times, values)
 
-
     except KeyboardInterrupt:
         print("Logging stopped")
 
     except subprocess.CalledProcessError as e:
         print(f"Command failed with retun code {e.returncode}")
 
-
-#animation
-anim = animation.FuncAnimation(fig, update, interval = 100, cache_frame_data=False)
-plt.show()
-
-
-if times and values:
-    smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=2)
-
+def plot(sm):
     plt.figure()
     plt.plot(times, values, label = "raw", alpha=0.4)
-    plt.plot(times, smoothed, label="smoothed",linewidth=2)
+    plt.plot(times, sm, label="smoothed",linewidth=2)
 
     plt.title("RSS over Time (smoothed)")
     plt.xlabel("Time")
@@ -70,5 +60,15 @@ if times and values:
     plt.grid(True)
     plt.show()
 
+def main():
+    # animation
+    anim = animation.FuncAnimation(fig, update, interval = 100, cache_frame_data=False)
+    plt.show()
 
+    # Show smoothed graph animation ends.
+    if times and values:
+        smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=2)
+        plot(smoothed)
 
+if __name__ == "__main__":
+    main()

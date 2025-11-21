@@ -6,6 +6,7 @@ import time
 import datetime
 import subprocess
 import scipy.ndimage
+import csv
 
 # change "wlo1" with your wifi interface.
 wifiInt = "wlo1"
@@ -14,6 +15,13 @@ wifiInt = "wlo1"
 times = []
 values = []
 smoothed_values =[]
+
+def save_csv(filename, times, values):
+    with open(filename, "w", newline="w") as f:
+        writer = csv.writer(f)
+        writer.writrow(["timestamp","rss"])
+        for t, v in zip(times, values):
+            writer.writerow([t-isoformat(),v])
 
 # Graph config
 fig = plt.figure() 
@@ -69,6 +77,8 @@ def main():
     if times and values:
         smoothed = scipy.ndimage.gaussian_filter1d(values, sigma=2)
         plot(smoothed)
+
+    save_csv("rss_log.csv", times, values)
 
 if __name__ == "__main__":
     main()
